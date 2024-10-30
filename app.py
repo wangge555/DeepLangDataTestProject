@@ -1,6 +1,6 @@
 import gradio as gr
 import traceback
-
+import re
 
 def hello_world_fn(username: str) -> tuple[str, str]:
     try:
@@ -35,6 +35,17 @@ def main() -> None:
                 outputs=[pack_output, status_output],
             )
 
+        with gr.Tab("html parser"):
+            raw_input = gr.Textbox(lines=1, placeholder="html", label="")
+            pack_output = gr.Textbox(label="输出")
+
+            btn = gr.Button("开始转换")
+            btn.click(
+                fn=extract_text,
+                inputs=raw_input,
+                outputs=pack_output,
+            )
+
     demo.queue(default_concurrency_limit=100).launch(
         inline=False,
         debug=False,
@@ -43,6 +54,24 @@ def main() -> None:
         show_error=True,
     )
 
+def extract_text(html):
+    p_texts = re.findall("(?s)(?<=<p>).*?(?=</p>)", html)
+    res = []
+    for text in p_texts:
+        text = re.sub("(?s)<.*?>.*?<.*?>", "", text)
+        res.append(text.strip())
+    return "\n".join(res)
+
 
 if __name__ == "__main__":
     main()
+#     html = """"<a>
+#    111
+#    <b>222</b>
+#    <p>
+#       333
+#       <c>444</c>
+#    </p>
+#    <p>555</p>
+# </a>"""
+#     print(extract_text(html))
